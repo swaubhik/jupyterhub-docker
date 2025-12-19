@@ -1,0 +1,80 @@
+services:
+  # Nginx Reverse Proxy for JupyterHub
+  nginx:
+    image: nginx:alpine
+    container_name: jupyterhub-nginx
+    restart: unless-stopped
+    
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+    
+    ports:
+      - "8000:80"
+    
+    networks:
+      - jupyterhub-network
+    
+    depends_on:
+      - jupyterhub
+    
+    labels:
+      - "com.jupyterhub.service=nginx"
+
+  jupyterhub:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    container_name: jupyterhub
+    restart: unless-stopped
+    image: jupyterhub-custom:latest
+    
+    volumes:
+      # JupyterHub configuration
+      - ./config/jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py:ro
+      
+      # Database persistence (user state, tokens, etc.)
+      - jupyterhub-data:/srv/jupyterhub/data
+      
+      # Student notebooks persistence on host
+      - ./data/student-notebooks:/home
+      
+      # Docker socket for spawning containers
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      
+      # Optional: Custom user list or other configs
+      - ./config/users.txt:/srv/jupyterhub/users.txt:ro
+    
+    environment:
+      # Docker network for spawned containers
+      DOCKER_NETWORK_NAME: ${DOCKER_NETWORK_NAME:-jupyterhub-network}
+      
+      # JupyterHub configuration
+      JUPYTERHUB_CRYPT_KEY: ${JUPYTERHUB_CRYPT_KEY}
+      
+      # For spawned containers to reach JupyterHub
+      HUB_IP: jupyterhub
+      
+      # External URL for Cloudflare Tunnel (WebSocket support)
+      JUPYTERHUB_EXTERNAL_URL: ${JUPYTERHUB_EXTERNAL_URL:-https://gpu.eagriassist.in}
+      
+      # Optional: Set log level
+      JUPYTERHUB_LOG_LEVEL: ${JUPYTERHUB_LOG_LEVEL:-INFO}
+    
+    networks:
+      - jupyterhub-network
+    
+    # JupyterHub only accessible via nginx
+    expose:
+      - "8000"
+    
+    labels:
+      - "com.jupyterhub.service=hub"
+
+networks:
+  jupyterhub-network:
+    name: ${DOCKER_NETWORK_NAME:-jupyterhub-network}
+    driver: bridge
+
+volumes:
+  jupyterhub-data:
+    name: jupyterhub-data

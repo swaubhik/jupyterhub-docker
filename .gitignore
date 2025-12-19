@@ -1,0 +1,47 @@
+# ============================================================================
+# JupyterHub Docker - Git Ignore
+# ============================================================================
+
+# Environment variables (contains secrets!)
+.env
+
+# Student data (user notebooks - don't commit to git)
+data/student-notebooks/
+
+# JupyterHub runtime data
+jupyterhub_cookie_secret
+*.sqlite
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter cache
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docker build artifacts
+docker/*.tar
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

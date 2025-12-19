@@ -1,0 +1,6 @@
+# Admin users (one per line)
+# These users will have admin access to JupyterHub
+admin
+
+# Regular users (optional - users can also self-register)
+mwnthai
