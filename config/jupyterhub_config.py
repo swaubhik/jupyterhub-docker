@@ -161,11 +161,14 @@ c.DockerSpawner.args = [
 # DATA PERSISTENCE - Student Work Storage
 # ============================================================================
 
-# Mount user home directory from host to container
-# Each user gets their own directory: /home/{username}
+# IMPORTANT: DockerSpawner mounts volumes from the HOST filesystem, not from
+# inside the JupyterHub container. Use absolute host paths here.
+# Change this path to match your actual data directory on the host.
+STUDENT_DATA_PATH = '/home/stihub/machine-learning/jupyterhub-docker/data/student-notebooks'
+
 c.DockerSpawner.volumes = {
     # Student data persistence - each user gets their own directory
-    '/home/{username}': {
+    STUDENT_DATA_PATH + '/{username}': {
         'bind': '/home/jovyan/work',
         'mode': 'rw'
     },
@@ -186,12 +189,24 @@ def create_user_dir(spawner):
     to have write access.
     """
     import os
-    user_dir = Path(f'/home/{spawner.user.name}')
+    import subprocess
+    
+    # Use the same path as the volume mount
+    user_dir = Path(f'{STUDENT_DATA_PATH}/{spawner.user.name}')
     user_dir.mkdir(parents=True, exist_ok=True)
-    # Set ownership to jovyan user (UID 1000, GID 100)
-    os.chown(user_dir, JOVYAN_UID, JOVYAN_GID)
-    # Set permissions: owner can read/write/execute, group can read/execute
-    user_dir.chmod(0o755)
+    
+    try:
+        # Set ownership to jovyan user (UID 1000, GID 100)
+        os.chown(user_dir, JOVYAN_UID, JOVYAN_GID)
+        # Set permissions: owner can read/write/execute, group can read/execute
+        user_dir.chmod(0o755)
+    except PermissionError:
+        # If chown fails (not running as root), try using subprocess
+        try:
+            subprocess.run(['chown', f'{JOVYAN_UID}:{JOVYAN_GID}', str(user_dir)], check=True)
+            subprocess.run(['chmod', '755', str(user_dir)], check=True)
+        except Exception as e:
+            print(f"Warning: Could not set permissions for {user_dir}: {e}")
 
 c.Spawner.pre_spawn_hook = create_user_dir
 
