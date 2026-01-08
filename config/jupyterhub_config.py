@@ -166,6 +166,9 @@ c.DockerSpawner.args = [
 # Change this path to match your actual data directory on the host.
 STUDENT_DATA_PATH = '/home/stihub/machine-learning/jupyterhub-docker/data/student-notebooks'
 
+# Path inside the JupyterHub container where user data is mounted
+HUB_NOTEBOOK_DIR = '/home'
+
 c.DockerSpawner.volumes = {
     # Student data persistence - each user gets their own directory
     STUDENT_DATA_PATH + '/{username}': {
@@ -191,8 +194,8 @@ def create_user_dir(spawner):
     import os
     import subprocess
     
-    # Use the same path as the volume mount
-    user_dir = Path(f'{STUDENT_DATA_PATH}/{spawner.user.name}')
+    # Use the path inside the container (where the volume is mounted)
+    user_dir = Path(f'{HUB_NOTEBOOK_DIR}/{spawner.user.name}')
     user_dir.mkdir(parents=True, exist_ok=True)
     
     try:
