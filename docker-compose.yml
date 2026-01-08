@@ -43,6 +43,9 @@ services:
       
       # Optional: Custom user list or other configs
       - ./config/users.txt:/srv/jupyterhub/users.txt:ro
+      
+      # Custom Templates
+      - ./config/templates:/srv/jupyterhub/templates:ro
     
     environment:
       # Docker network for spawned containers

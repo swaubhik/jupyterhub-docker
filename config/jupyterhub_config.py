@@ -18,6 +18,12 @@ from pathlib import Path
 # JupyterHub listens on all interfaces inside the container
 c.JupyterHub.bind_url = 'http://0.0.0.0:8000'
 
+# Custom Templates for UI Overrides
+c.JupyterHub.template_paths = ['/srv/jupyterhub/templates']
+
+# Default to JupyterLab interface
+c.Spawner.default_url = '/lab'
+
 # Allow named servers (optional - lets users run multiple notebooks)
 c.JupyterHub.allow_named_servers = False
 
